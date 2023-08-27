@@ -10,6 +10,8 @@ namespace TicTacToe
 {
     internal class MyPictureBox : PictureBox
     {
+        private const string mark = "X";
+        private const string zero = "O";
 
         private bool currentPlayerX = true; // По умолчанию начинает игрок X
 
@@ -77,7 +79,7 @@ namespace TicTacToe
                 PictureBox pictureBox = (PictureBox)sender;
 
                 Label label = pictureBox.Controls[0] as Label;
-                label.Text = currentPlayerX ? "X" : "O"; // Меняем текст в зависимости от текущего игрока
+                label.Text = currentPlayerX ? mark : zero; // Меняем текст в зависимости от текущего игрока
                 label.Dock = DockStyle.Fill; // Занимаем все доступное место внутри PictureBox
                 label.Font = new Font("Roboto", 105, FontStyle.Regular); // Устанавливаем новый размер шрифта
 
@@ -170,7 +172,7 @@ namespace TicTacToe
             {
                 // Проверка строки на "X" и "O"
                 if ((pictureBoxes[i][0].Controls[0] is Label label) &&
-                    (label.Text == "X" || label.Text == "O") &&
+                    (label.Text == mark || label.Text == zero) &&
                     label.Text == pictureBoxes[i][1].Controls[0].Text &&
                     pictureBoxes[i][1].Controls[0].Text == pictureBoxes[i][2].Controls[0].Text)
                 {
@@ -179,7 +181,7 @@ namespace TicTacToe
 
                 // Проверка столбца на "X" и "O"
                 if ((pictureBoxes[0][i].Controls[0] is Label colLabel) &&
-                    (colLabel.Text == "X" || colLabel.Text == "O") &&
+                    (colLabel.Text == mark || colLabel.Text == zero) &&
                     colLabel.Text == pictureBoxes[1][i].Controls[0].Text &&
                     pictureBoxes[1][i].Controls[0].Text == pictureBoxes[2][i].Controls[0].Text)
                 {
@@ -189,7 +191,7 @@ namespace TicTacToe
 
             // Проверка главной диагонали на "X" и "O"
             if ((pictureBoxes[0][0].Controls[0] is Label diagLabel) &&
-                (diagLabel.Text == "X" || diagLabel.Text == "O") &&
+                (diagLabel.Text == mark || diagLabel.Text == zero) &&
                 diagLabel.Text == pictureBoxes[1][1].Controls[0].Text &&
                 pictureBoxes[1][1].Controls[0].Text == pictureBoxes[2][2].Controls[0].Text)
             {
@@ -198,7 +200,7 @@ namespace TicTacToe
 
             // Проверка побочной диагонали на "X" и "O"
             if ((pictureBoxes[0][2].Controls[0] is Label antiDiagLabel) &&
-                (antiDiagLabel.Text == "X" || antiDiagLabel.Text == "O") &&
+                (antiDiagLabel.Text == mark || antiDiagLabel.Text == zero) &&
                 antiDiagLabel.Text == pictureBoxes[1][1].Controls[0].Text &&
                 pictureBoxes[1][1].Controls[0].Text == pictureBoxes[2][0].Controls[0].Text)
             {
@@ -218,7 +220,7 @@ namespace TicTacToe
                 foreach (var picBox in row)
                 {
                     Label label = picBox.Controls[0] as Label;
-                    if (label.Text != "X" && label.Text != "O")
+                    if (label.Text != mark && label.Text != zero)
                     {
                         availableMoves.Add(picBox);
                     }
@@ -229,7 +231,7 @@ namespace TicTacToe
             foreach (var move in availableMoves)
             {
                 Label botLabel = move.Controls[0] as Label;
-                botLabel.Text = "O"; // Попробуем сделать ход для бота
+                botLabel.Text = zero; // Попробуем сделать ход для бота
                 botLabel.Dock = DockStyle.Fill;
                 botLabel.Font = new Font("Roboto", 105, FontStyle.Regular);
 
@@ -247,12 +249,12 @@ namespace TicTacToe
             foreach (var move in availableMoves)
             {
                 Label playerLabel = move.Controls[0] as Label;
-                playerLabel.Text = "X"; // Попробуем сделать ход для игрока
+                playerLabel.Text = mark; // Попробуем сделать ход для игрока
 
                 if (IsWinner()) // Проверяем, выиграет ли игрок после этого хода
                 {
                     Label botLabel = move.Controls[0] as Label;
-                    botLabel.Text = "O"; // Блокируем ход игрока
+                    botLabel.Text = zero; // Блокируем ход игрока
                     botLabel.Dock = DockStyle.Fill;
                     botLabel.Font = new Font("Roboto", 105, FontStyle.Regular);
                     return;
@@ -269,7 +271,7 @@ namespace TicTacToe
 
                 PictureBox botMove = availableMoves[index];
                 Label botLabel = botMove.Controls[0] as Label;
-                botLabel.Text = "O"; // Ход бота
+                botLabel.Text = zero; // Ход бота
                 botLabel.Dock = DockStyle.Fill;
                 botLabel.Font = new Font("Roboto", 105, FontStyle.Regular);
             }
