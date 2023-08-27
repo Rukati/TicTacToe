@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,43 +17,40 @@ namespace TicTacToe
         public Form1()
         {
             InitializeComponent();
-            menu();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            game(); 
+            game(false); 
         }
         private void button2_Click(object sender, EventArgs e)
         {
             this.Close();
         }
-        protected void game()
+        protected void game(bool bot)
         {
-            button1.Visible = false;
-            button2.Visible = false;
 
-            MyPictureBox MyPicBox = new MyPictureBox();
+            MyPictureBox MyPicBox = new MyPictureBox(bot);
             MyPicBox.CreateSquares(ref pictureBoxes);
             show_picture_box();
-        }
-        protected void menu()
-        {
-            button1.Visible = true;
-            button2.Visible = true;
         }
 
         protected void show_picture_box()
         {
-
             foreach (var row in pictureBoxes)
             {
                 foreach (var pictureBox in row)
                 {
                     Controls.Add(pictureBox);
+                    pictureBox.BringToFront();
                 }
             }
 
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            game(true);
         }
     }
 }
