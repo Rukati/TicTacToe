@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -8,11 +8,19 @@ using System.Windows.Forms;
 
 namespace TicTacToe
 {
-    internal class MyPictureBox : Form1
+    internal class MyPictureBox : PictureBox
     {
 
         private bool currentPlayerX = true; // По умолчанию начинает игрок X
+
         List<List<PictureBox>> pictureBoxes = new List<List<PictureBox>>();
+
+        int move = 1;
+
+        bool bot = new bool();
+
+        public MyPictureBox(bool bot) { this.bot = bot; }
+
         public void CreateSquares(ref List<List<PictureBox>> pictureBoxes)
         {
             this.pictureBoxes = pictureBoxes;
@@ -61,6 +69,7 @@ namespace TicTacToe
             PictureBox pictureBox = (PictureBox)sender;
             pictureBox.BackColor = Color.White; // Возвращаем обратно на свой цвет при уходе курсора
         }
+
         private void PictureBox_MouseClick(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -73,24 +82,88 @@ namespace TicTacToe
                 label.Font = new Font("Roboto", 105, FontStyle.Regular); // Устанавливаем новый размер шрифта
 
                 pictureBox.Controls.Add(label);
-
+                
                 if (IsWinner())
                 {
                     string player = currentPlayerX ? "крестик" : "нолик";
                     var result = MessageBox.Show($"Победил {player}! Хотите заново?", "Winner", MessageBoxButtons.YesNo);
-
                     if (result == DialogResult.Yes)
                     {
-                        menu();
+                        RestartGame();
                     }
                     else
-                        menu();
+                    {
+                        ResetGame();
+                    }
+                }
+                else if (move == 9)
+                {
+                    var result = MessageBox.Show("Ничья! Хотите заново?", "Nobody won?", MessageBoxButtons.YesNo);
+                    if (result == DialogResult.Yes)
+                    {
+                        foreach (var row in pictureBoxes)
+                        {
+                            foreach (var picBox in row)
+                            {
+                                label = picBox.Controls[0] as Label;
+                                label.Text = ""; // Сбросить текст
+                                label.Dock = DockStyle.None; // Сбросить свойство Dock
+                                label.Font = SystemFonts.DefaultFont; // Вернуть шрифт по умолчанию
+                            }
+                        }
 
+                        // Сбросить состояние игрока
+                        currentPlayerX = true;
+                        move = 1;
+                    }
+                    else
+                    {
+                        foreach (var row in pictureBoxes)
+                        {
+                            foreach (var picBox in row)
+                            {
+                                picBox.Dispose();
+                            }
+                        }
+                        pictureBoxes.Clear();
+                    }
                 }
                 else
-                    currentPlayerX = !currentPlayerX; // Меняем текущего игрока на противоположного
+                {
+                    if (!bot)
+                    {
+                        currentPlayerX = !currentPlayerX; // Меняем текущего игрока на противоположного
+                        move++;
+                    }
+                    else
+                    {
+                        move++;
+                        currentPlayerX = !currentPlayerX;
+                        BotMove();
+                        if (IsWinner())
+                        {
+                            string player = currentPlayerX ? "крестик" : "нолик";
+                            var result = MessageBox.Show($"Победил {player}! Хотите заново?", "Winner", MessageBoxButtons.YesNo);
+                            if (result == DialogResult.Yes)
+                            {
+                                RestartGame();
+                            }
+                            else
+                            {
+                                ResetGame();
+                            }
+                        }
+                        else
+                        {
+                            currentPlayerX = !currentPlayerX;
+                            move++;
+                        }
+                    }
+                }
+
             }
         }
+
         private bool IsWinner()
         {
             for (int i = 0; i < 3; i++)
@@ -133,6 +206,107 @@ namespace TicTacToe
             }
 
             return false;
+        }
+
+        private void BotMove()
+        {
+            List<PictureBox> availableMoves = new List<PictureBox>();
+
+            // Находим все пустые клетки на поле
+            foreach (var row in pictureBoxes)
+            {
+                foreach (var picBox in row)
+                {
+                    Label label = picBox.Controls[0] as Label;
+                    if (label.Text != "X" && label.Text != "O")
+                    {
+                        availableMoves.Add(picBox);
+                    }
+                }
+            }
+
+            // Ищем выигрышные ходы для бота
+            foreach (var move in availableMoves)
+            {
+                Label botLabel = move.Controls[0] as Label;
+                botLabel.Text = "O"; // Попробуем сделать ход для бота
+                botLabel.Dock = DockStyle.Fill;
+                botLabel.Font = new Font("Roboto", 105, FontStyle.Regular);
+
+                if (IsWinner()) // Проверяем, выиграет ли бот после этого хода
+                {
+                    return; // Если да, то ход сделан
+                }
+
+                botLabel.Text = ""; // Отменяем ход для следующей проверки
+                botLabel.Dock = DockStyle.None; // Сбросить свойство Dock
+                botLabel.Font = SystemFonts.DefaultFont; // Вернуть шрифт по умолчанию
+            }
+
+            // Ищем выигрышные ходы для игрока и блокируем их
+            foreach (var move in availableMoves)
+            {
+                Label playerLabel = move.Controls[0] as Label;
+                playerLabel.Text = "X"; // Попробуем сделать ход для игрока
+
+                if (IsWinner()) // Проверяем, выиграет ли игрок после этого хода
+                {
+                    Label botLabel = move.Controls[0] as Label;
+                    botLabel.Text = "O"; // Блокируем ход игрока
+                    botLabel.Dock = DockStyle.Fill;
+                    botLabel.Font = new Font("Roboto", 105, FontStyle.Regular);
+                    return;
+                }
+
+                playerLabel.Text = ""; // Отменяем ход для следующей проверки
+            }
+
+            // Если не найдено выигрышных ходов и блокирующих ходов, выбираем случайный доступный ход
+            if (availableMoves.Count > 0)
+            {
+                Random random = new Random();
+                int index = random.Next(availableMoves.Count);
+
+                PictureBox botMove = availableMoves[index];
+                Label botLabel = botMove.Controls[0] as Label;
+                botLabel.Text = "O"; // Ход бота
+                botLabel.Dock = DockStyle.Fill;
+                botLabel.Font = new Font("Roboto", 105, FontStyle.Regular);
+            }
+        }
+
+        private void ResetLabel(Label label)
+        {
+            label.Text = ""; // Сбросить текст
+            label.Dock = DockStyle.None; // Сбросить свойство Dock
+            label.Font = SystemFonts.DefaultFont; // Вернуть шрифт по умолчанию
+        }
+
+        private void RestartGame()
+        {
+            foreach (var row in pictureBoxes)
+            {
+                foreach (var picBox in row)
+                {
+                    Label label = picBox.Controls[0] as Label;
+                    ResetLabel(label);
+                }
+            }
+
+            currentPlayerX = true; // Сбросить состояние игрока
+            move = 1; // Сбросить счетчик ходов
+        }
+
+        private void ResetGame()
+        {
+            foreach (var row in pictureBoxes)
+            {
+                foreach (var picBox in row)
+                {
+                    picBox.Dispose();
+                }
+            }
+            pictureBoxes.Clear();
         }
 
 
